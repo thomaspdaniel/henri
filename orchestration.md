@@ -33,9 +33,9 @@ The orchestration system uses two different patterns for agent activation:
 These agents are activated via slash commands and engage in interactive conversation with the user in the main Claude session:
 
 - **Plan Development Agent** (e.g., `/persona-plan-developer`) - Requirements gathering conversation
-- **Workflow Designer Agent** (e.g., `/workflow-design`) - Interactive workflow design with clarifying questions
-- **Design Verifier Agent** (e.g., `/design-verify`) - Review and discussion of workflow design
-- **Workflow Executor** (e.g., `/workflow-exec`) - Orchestrates execution, handles escalations interactively
+- **Workflow Designer Agent** (e.g., `/persona-workflow-designer`) - Interactive workflow design with clarifying questions
+- **Design Verifier Agent** (e.g., `/persona-design-verifier`) - Review and discussion of workflow design
+- **Workflow Executor** (e.g., `/persona-workflow-executor`) - Orchestrates execution, handles escalations interactively
 - **Risk Assessment & Validation Agent** (invoked by Workflow Designer) - Collaborative risk analysis
 - **Escalation Resolution Agent** (invoked by Workflow Executor) - Interactive resolution of blocked agents
 - **Workflow Adaptation Agent** (invoked by Escalation Resolution or Risk Assessment) - Collaborative workflow updates
@@ -272,9 +272,18 @@ Doer agents must understand when to self-resolve vs escalate completion drive no
 
 **Proactive approach:** Identify risky assumptions during workflow design and insert Proof of Concept (PoC) tasks to validate them early, before main workflow execution begins.
 
-### Risk Assessment & Validation Agent
+### Risk Assessment Architecture
 
-The Risk Assessment & Validation Agent works in two phases:
+**Core Insight:** Risk identification requires specialized domain knowledge. Rather than expecting a single agent to understand risks across all technologies, we leverage:
+1. Specialized Doer agents who understand their technology domains
+2. Technology best practices research from the internet
+3. Synthesis of both sources into actionable PoC recommendations
+
+**Architecture:** Risk Assessment is coordinated by a Risk Assessment Coordinator Agent that orchestrates multiple specialized sub-agents.
+
+### Risk Assessment Coordinator Agent
+
+The Risk Assessment Coordinator Agent drives the risk assessment process and works in two phases:
 
 #### Phase 1: During Workflow Design (works with Workflow Designer Agent)
 
@@ -283,18 +292,47 @@ The Risk Assessment & Validation Agent works in two phases:
 **Inputs:**
 - Conversation summary
 - Draft workflow plan from Workflow Designer Agent
+- Agent roster (from Agent Roster Designer)
 
-**Responsibilities:**
-- Identifies assumptions with high uncertainty or risk
-- Evaluates which assumptions could block progress if wrong
-- Recommends which assumptions need Proof of Concept tasks
-- Specifies evidence requirements for each PoC (what success/failure looks like)
-- Inserts PoC tasks into workflow sequence early in dependency chains
+**Specialized Sub-Agents:**
 
-**Outputs:**
+1. **Technology Best Practices Research Agent(s)** (Claude agent via Task tool)
+   - Searches internet for best practices for specific technologies identified in workflow
+   - Searches for common failure patterns and technology-specific risks
+   - May leverage MCP servers for enhanced research capabilities
+   - Output: Best practices documentation per technology/task type
+   - **Storage:** Research preserved long-term for reuse across workflows (storage location TBD)
+
+2. **Doer Agent Consultation** (coordinated by Risk Coordinator)
+   - Risk Coordinator identifies which specialized Doer agents to consult based on agent roster
+   - Consults Doer agents (via prompts/questions) for technology-specific risk identification
+   - Doer agents provide domain expertise on risks in their specialty areas
+   - Output: Technology-specific risk assessments from domain experts
+
+3. **PoC Recommendation Agent** (Claude agent via Task tool)
+   - Takes research outputs + doer consultations
+   - Synthesizes inputs into specific PoC task recommendations
+   - Specifies evidence requirements for each PoC (what success/failure looks like)
+   - Output: PoC task specifications with success/failure criteria
+
+4. **PoC Integration Agent** (Claude agent via Task tool)
+   - Takes PoC recommendations + workflow sequence
+   - Determines where PoCs should run (early, before dependent tasks)
+   - Updates workflow sequence to include PoCs in correct positions
+   - Output: Updated workflow sequence with PoCs integrated
+
+5. **Best Practices Integration Agent** (Claude agent via Task tool)
+   - Takes best practices research + agent roster + agent instructions (drafts)
+   - Embeds relevant best practices into each Doer agent's instructions
+   - Ensures Doer agents follow best practices during work (not just risk assessment)
+   - Output: Enhanced agent instructions with embedded best practices
+
+**Coordinator Outputs:**
 - Risk assessment report
 - PoC task specifications with success/failure criteria
 - Updated workflow plan with PoC tasks integrated
+- Enhanced agent instructions with best practices embedded
+- Preserved research for long-term reuse
 
 **Example risky assumptions:**
 - "Database schema migration will work without conflicts"
@@ -310,12 +348,20 @@ The Risk Assessment & Validation Agent works in two phases:
 - PoC task outputs and evidence from doer agent's `task_output/`
 - Original risk assessment and success/failure criteria
 
-**Responsibilities:**
-- Reviews PoC evidence against predefined criteria
-- Determines outcome: **proceed as planned** / **adapt workflow** / **escalate to user**
-- If adaptation needed: specifies required changes for Workflow Adaptation Agent
+**Specialized Sub-Agents:**
 
-**Outputs:**
+1. **PoC Evidence Reviewer Agent** (Claude agent via Task tool)
+   - Reads PoC task outputs and evidence
+   - Compares evidence against predefined success/failure criteria
+   - Output: Evidence assessment (pass/partial/fail) with rationale
+
+2. **PoC Decision Agent** (Claude agent via Task tool)
+   - Takes evidence assessment
+   - Determines outcome: **proceed as planned** / **adapt workflow** / **escalate to user**
+   - If adapt: specifies required changes for Workflow Adaptation Agent
+   - Output: Decision with rationale and action requirements
+
+**Coordinator Outputs:**
 - PoC validation decision with rationale
 - Workflow adaptation requirements (if needed)
 - Triggers Workflow Adaptation Agent if structural changes required
@@ -325,6 +371,14 @@ The Risk Assessment & Validation Agent works in two phases:
 - **Adapt workflow:** Assumption partially validated, requires workflow adjustments (e.g., add error handling, change approach, add intermediate tasks)
 - **Escalate to user:** Assumption invalidated, fundamental approach needs reconsideration
 
+### Best Practices Flow
+
+**Critical Design Principle:** Best practices research flows to two destinations:
+1. **PoC recommendations** - Inform what to validate
+2. **Doer agent instructions** - Ensure work follows best practices (proactive risk reduction)
+
+This dual flow ensures risks are both detected (via PoC) and prevented (via best practices adherence).
+
 ### Updated Workflow Design Sequence
 
 ```
@@ -332,15 +386,15 @@ The Risk Assessment & Validation Agent works in two phases:
 2. Plan Development Agent conducts requirements gathering conversation
 3. Plan Development Agent writes conversation_summary_[taskname].md
 4. User exits Plan Development Agent
-5. User activates Workflow Designer Agent (slash command: /workflow-design)
+5. User activates Workflow Designer Agent (slash command: /persona-workflow-designer)
 6. Workflow Designer Agent creates initial workflow design
 7. Workflow Designer Agent invokes Risk Assessment & Validation Agent (interactive collaboration)
 8. Risk Assessment Agent analyzes for risky assumptions, inserts PoC tasks where needed
 9. User exits Workflow Designer Agent (or continues to Design Verifier)
-10. User activates Design Verifier Agent (slash command: /design-verify)
+10. User activates Design Verifier Agent (slash command: /persona-design-verifier)
 11. Design Verifier Agent reviews complete design (including PoCs)
 12. User approves final design
-13. User activates Workflow Executor (slash command: /workflow-exec)
+13. User activates Workflow Executor (slash command: /persona-workflow-executor)
 14. Workflow execution begins - Executor launches autonomous agents via Task tool
     ↓
 15. PoC tasks execute early in workflow (before dependent tasks) - autonomous agents via Task tool
@@ -670,7 +724,7 @@ The orchestration workflow begins with interactive agents activated via slash co
    - Agent asks clarifying questions about requirements, constraints, dependencies
    - Agent writes comprehensive summary to `orchestration/conversation_summary_[taskname].md`
    - User exits Plan Development Agent
-2. **Workflow Design**: User activates Workflow Designer Agent via slash command (e.g., `/workflow-design`)
+2. **Workflow Design**: User activates Workflow Designer Agent via slash command (e.g., `/persona-workflow-designer`)
    - Agent reads conversation summary
    - Agent asks clarifying questions about workflow structure, validation needs, agent requirements
    - Agent designs multi-agent workflow with validation checkpoints
@@ -746,25 +800,78 @@ The Workflow Designer Agent produces:
 
 #### Workflow Designer Agent Sub-Agent Delegation
 
-For complex workflows, the Workflow Designer Agent may **spawn specialized sub-agents** to handle detailed design work:
+The Workflow Designer Agent **always uses specialized sub-agents** to handle detailed design work:
+
+**Design Philosophy**: There is no cognitive overhead or coordination friction with AI agents. A specialized agent on a simple task completes it quickly and efficiently. Therefore, we always use specialized agents rather than concentrating work in a single generalized agent.
+
+**Specialized Sub-Agents**:
+
+1. **Agent Roster Designer** (Claude agent via Task tool)
+   - Analyzes conversation summary to determine required agent types
+   - Identifies which agents need creation
+   - Produces specifications for new agents
+   - Output: Agent roster with roles and creation requirements
+
+2. **Workflow Sequencing Agent** (Claude agent via Task tool)
+   - Determines execution order and parallelism decisions
+   - Analyzes task dependencies and blocking conditions
+   - Understands what can safely run in parallel
+   - Output: Workflow sequence with dependency chains
+
+3. **Instruction Writer Agent** (Claude agent via Task tool)
+   - Reads agent templates from `~/.claude/protocols/orchestration_*_agent_template.md`
+   - Customizes templates with task-specific context from conversation summary
+   - Synthesizes guidance for each agent
+   - Output: `agent_instructions.md` file for each agent
+
+4. **File Structure Designer** (Claude agent via Task tool)
+   - Designs data flow between agents
+   - Creates file communication contracts
+   - Determines what outputs each agent produces and what inputs others need
+   - Output: File path specifications and format requirements
+
+5. **Validation Checkpoint Designer** (Claude agent via Task tool)
+   - Defines measurable success criteria
+   - Determines what requires validation and when
+   - Understands failure modes and remediation paths
+   - Assigns verifier agents to appropriate doer agents
+   - Output: Validation specifications with success criteria
+
+6. **Directory Setup Agent** (Script - not Claude)
+   - Input: Agent roster (list of names)
+   - Creates fixed directory pattern for each agent:
+     ```
+     orchestration/agents/{name}/
+     orchestration/agents/{name}/completion_drive/
+     orchestration/agents/{name}/task_output/
+     ```
+   - Pure mechanical file operations
+
+7. **Shared Status Initializer Agent** (Script - not Claude)
+   - Input: Structured data files (agent roster with dependencies, workflow sequence)
+   - Populates `shared_status.json` template with agent entries
+   - Pure template filling with structured inputs
+
+8. **Risk Assessment & Validation Agent** (Claude agent via interactive invocation)
+   - Identifies risky assumptions requiring validation
+   - Evaluates likelihood and impact
+   - Determines appropriate Proof of Concept strategies
+   - Invoked interactively by Workflow Designer Agent (see "Risk Assessment & Proof of Concept Workflow" section)
 
 **Delegation Pattern**:
-1. Workflow Designer Agent analyzes conversation summary
-2. Determines workflow complexity
-3. For complex workflows, spawns sub-agents:
-   - **Instruction Writer Agent**: Creates detailed `agent_instructions.md` for each agent
-   - **File Structure Designer**: Plans file communication paths and contracts
-   - **Validation Checkpoint Designer**: Defines validation points and success criteria
-4. Workflow Designer Agent integrates sub-agent outputs into cohesive workflow design
-5. Produces final workflow coordination plan
+1. Workflow Designer Agent reads conversation summary
+2. Asks user clarifying questions about gaps/ambiguities
+3. Launches specialized sub-agents via Task tool (agents 1-7)
+4. Invokes Risk Assessment & Validation Agent (interactive collaboration)
+5. Integrates all outputs into cohesive workflow design
+6. Produces final `workflow_coordination_plan.md`
 
 **Benefits**:
-- Distributes cognitive load for complex workflows
+- Distributes cognitive load across specialized agents
 - Each sub-agent can be thorough in their domain
 - Workflow Designer Agent maintains overall design authority
-- Scales naturally with workflow complexity
-
-**Simple workflows**: Workflow Designer Agent handles directly without delegation
+- Scripts handle mechanical operations efficiently
+- No complexity penalty for using specialized agents
 
 ### Design Philosophy
 - **Context over templates**: Conversation summaries capture the "why" not just the "what"
@@ -1078,7 +1185,7 @@ All sub-items resolved. Timeout handling addressed in Issue 5.
    - Creates `orchestration/` directory if needed
    - Writes `conversation_summary_[taskname].md`
 
-2. **Workflow Designer Agent** (activated via `/workflow-design`):
+2. **Workflow Designer Agent** (activated via `/persona-workflow-designer`):
    - Creates `orchestration/agents/` directory structure
    - Creates subdirectories for each agent (e.g., `orchestration/agents/database_agent/`)
    - Reads agent templates from `~/.claude/protocols/orchestration_*_agent_template.md`
@@ -1087,7 +1194,7 @@ All sub-items resolved. Timeout handling addressed in Issue 5.
    - Creates `workflow_coordination_plan.md` with execution sequence
    - Creates `completion_drive/`, `task_output/` subdirectories for each agent
 
-3. **Workflow Executor** (activated via `/workflow-exec`):
+3. **Workflow Executor** (activated via `/persona-workflow-executor`):
    - Reads `workflow_coordination_plan.md` and `shared_status.json`
    - Begins launching autonomous agents via Task tool
    - Autonomous agents create their own `session_current.json` files when they start work
@@ -1142,12 +1249,12 @@ If an agent updates outputs after failed verification, how do downstream agents 
 ### Q6: Design Verifier Agent Invocation
 **Status**: ✅ **ANSWERED**
 
-User manually activates Design Verifier Agent via slash command (e.g., `/design-verify`) after Workflow Designer Agent completes. This allows user to review the design and decide whether to proceed.
+User manually activates Design Verifier Agent via slash command (e.g., `/persona-design-verifier`) after Workflow Designer Agent completes. This allows user to review the design and decide whether to proceed.
 
 ### Q7: Workflow Architect Activation Mechanism
 **Status**: ✅ **ANSWERED** (renamed from "Workflow Architect" to "Workflow Designer Agent")
 
-User explicitly activates Workflow Designer Agent via slash command (e.g., `/workflow-design`) after Plan Development Agent completes and writes conversation_summary.md.
+User explicitly activates Workflow Designer Agent via slash command (e.g., `/persona-workflow-designer`) after Plan Development Agent completes and writes conversation_summary.md.
 
 ### Q8: Simple vs Complex Workflow Threshold
 What defines "simple" workflows that don't need sub-agent delegation? Agent count? Complexity metric?
