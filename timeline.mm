@@ -97,8 +97,15 @@
 <node TEXT="Agent Roster Designer" ID="ID_784701336" CREATED="1760554285795" MODIFIED="1760555100000" BACKGROUND_COLOR="#ccffcc" STYLE="bubble">
 <icon BUILTIN="emoji-1F989"/>
 <node TEXT="Determines required agent types" ID="ID_904575803" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="Extracts plan actions from conversation summary" ID="ID_904575811" CREATED="1760555100008" MODIFIED="1760555100008" STYLE="bubble"/>
+<node TEXT="Maps plan actions to agents (3-7 actions each)" ID="ID_904575812" CREATED="1760555100009" MODIFIED="1760555100009" STYLE="bubble"/>
 <node TEXT="Checks orchestration_agent_registry.json" ID="ID_904575804" CREATED="1760555100001" MODIFIED="1760555100001" STYLE="bubble"/>
 <node TEXT="Flags agents: exists true/false" ID="ID_904575805" CREATED="1760555100002" MODIFIED="1760555100002" STYLE="bubble"/>
+<node TEXT="ALWAYS presents roster to user for approval:" ID="ID_904575813" CREATED="1760555100010" MODIFIED="1760555100010" BACKGROUND_COLOR="#ffe6e6" STYLE="bubble">
+<node TEXT="Shows roles, dependencies, plan actions" ID="ID_904575814" CREATED="1760555100011" MODIFIED="1760555100011" STYLE="bubble"/>
+<node TEXT="Workflow flow visualization" ID="ID_904575815" CREATED="1760555100012" MODIFIED="1760555100012" STYLE="bubble"/>
+<node TEXT="User validates agent selection" ID="ID_904575816" CREATED="1760555100013" MODIFIED="1760555100013" STYLE="bubble"/>
+</node>
 <node TEXT="If missing agents:" ID="ID_904575806" CREATED="1760555100003" MODIFIED="1760555100003" STYLE="bubble">
 <node TEXT="Option 1: Guided creation (recommended)" ID="ID_904575807" CREATED="1760555100004" MODIFIED="1760555100004" BACKGROUND_COLOR="#e6ffe6" STYLE="bubble"/>
 <node TEXT="Option 2: Workflow redesign" ID="ID_904575808" CREATED="1760555100005" MODIFIED="1760555100005" BACKGROUND_COLOR="#fffbe6" STYLE="bubble"/>
@@ -106,6 +113,9 @@
 </node>
 <node TEXT="agent_roster.json" ID="ID_904575810" CREATED="1760555100007" MODIFIED="1760555100007" BACKGROUND_COLOR="#ffffcc" STYLE="bubble">
 <icon BUILTIN="list"/>
+<node TEXT="Agents with exists flags" ID="ID_904575817" CREATED="1760555100014" MODIFIED="1760555100014" STYLE="bubble"/>
+<node TEXT="plan_actions array per agent" ID="ID_904575818" CREATED="1760555100015" MODIFIED="1760555100015" STYLE="bubble"/>
+<node TEXT="Dependencies between agents" ID="ID_904575819" CREATED="1760555100016" MODIFIED="1760555100016" STYLE="bubble"/>
 </node>
 </node>
 <node TEXT="Workflow Sequencing Agent" ID="ID_94798825" CREATED="1760554285795" MODIFIED="1760555200000" BACKGROUND_COLOR="#ccffcc" STYLE="bubble">
