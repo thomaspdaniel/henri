@@ -1223,8 +1223,10 @@ The Agent Roster Designer (ARD) is a specialized sub-agent launched by the Workf
 2. Identify technical domains (database, API, frontend, DevOps, etc.)
 3. Map domains to potential agent types
 4. Determine agent capabilities needed
+5. **Extract specific plan actions from conversation summary**
+6. **Map plan actions to appropriate agents**
 
-**Output:** Draft agent roster (internal, not written to disk)
+**Output:** Draft agent roster with action mappings (internal, not written to disk)
 
 #### Phase 2: Check Agent Existence
 **Input:** Draft agent roster
@@ -1253,7 +1255,13 @@ The Agent Roster Designer (ARD) is a specialized sub-agent launched by the Workf
       "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
       "exists": true,
       "dependencies": [],
-      "capabilities_required": ["sql", "schema_design", "migrations"]
+      "capabilities_required": ["sql", "schema_design", "migrations"],
+      "plan_actions": [
+        "Design user table schema with id, email, password_hash, created_at, updated_at fields",
+        "Create migration script for users table",
+        "Add unique constraint on email field",
+        "Create indexes for common query patterns"
+      ]
     },
     "api_agent": {
       "role": "Implement user CRUD endpoints",
@@ -1261,7 +1269,14 @@ The Agent Roster Designer (ARD) is a specialized sub-agent launched by the Workf
       "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
       "exists": true,
       "dependencies": ["database_agent"],
-      "capabilities_required": ["rest_api", "http", "endpoint_design"]
+      "capabilities_required": ["rest_api", "http", "endpoint_design"],
+      "plan_actions": [
+        "Create POST /users endpoint for user registration",
+        "Create GET /users/:id endpoint for user retrieval",
+        "Create PUT /users/:id endpoint for user updates",
+        "Create DELETE /users/:id endpoint for user deletion",
+        "Add authentication middleware to protected endpoints"
+      ]
     },
     "data_migration_agent": {
       "role": "Migrate legacy user data to new schema",
@@ -1282,7 +1297,14 @@ The Agent Roster Designer (ARD) is a specialized sub-agent launched by the Workf
         }
       },
       "dependencies": ["database_agent"],
-      "capabilities_required": ["data_migration", "rollback", "validation"]
+      "capabilities_required": ["data_migration", "rollback", "validation"],
+      "plan_actions": [
+        "Extract user data from legacy system",
+        "Transform legacy data to match new schema",
+        "Validate data integrity before insertion",
+        "Load data into new users table with transaction safety",
+        "Create rollback script in case of migration failure"
+      ]
     },
     "verifier_agent": {
       "role": "Validate all agent outputs",
@@ -1290,7 +1312,13 @@ The Agent Roster Designer (ARD) is a specialized sub-agent launched by the Workf
       "template": "~/.claude/protocols/orchestration_verifier_agent_template.md",
       "exists": true,
       "dependencies": [],
-      "capabilities_required": ["validation", "testing", "evidence_review"]
+      "capabilities_required": ["validation", "testing", "evidence_review"],
+      "plan_actions": [
+        "Verify database schema matches requirements",
+        "Verify API endpoints return correct responses",
+        "Verify data migration completed without data loss",
+        "Review completion drive notes for all agents"
+      ]
     }
   },
   "missing_agents": ["data_migration_agent"],
@@ -1356,6 +1384,64 @@ You can create the agent yourself and resume when ready.
 **Which option would you like to proceed with?**
 ```
 
+#### All Agents Exist - Approval Request
+
+**Example user presentation when all agents exist:**
+```markdown
+## Agent Roster Analysis Complete
+
+I've identified the agents needed for this workflow. All agents exist and are ready to use:
+
+### Proposed Agent Roster
+
+**database_agent** - Create users table with authentication fields
+- Dependencies: None
+- Plan actions:
+  1. Design user table schema with id, email, password_hash, created_at, updated_at fields
+  2. Create migration script for users table
+  3. Add unique constraint on email field
+  4. Create indexes for common query patterns
+
+**api_agent** - Implement user CRUD endpoints
+- Dependencies: database_agent
+- Plan actions:
+  1. Create POST /users endpoint for user registration
+  2. Create GET /users/:id endpoint for user retrieval
+  3. Create PUT /users/:id endpoint for user updates
+  4. Create DELETE /users/:id endpoint for user deletion
+  5. Add authentication middleware to protected endpoints
+
+**frontend_agent** - Build user management UI components
+- Dependencies: api_agent
+- Plan actions:
+  1. Create user registration form with validation
+  2. Create user profile page with edit capability
+  3. Create user list view for admin
+  4. Add loading states and error handling
+
+**verifier_agent** - Validate all agent outputs
+- Dependencies: None
+- Plan actions:
+  1. Verify database schema matches requirements
+  2. Verify API endpoints return correct responses
+  3. Verify frontend components render properly
+  4. Review completion drive notes for all agents
+
+### Workflow Flow
+```
+database_agent → database_verifier
+                       ↓
+                 api_agent → api_verifier
+                       ↓
+              frontend_agent → frontend_verifier
+```
+
+**Does this agent selection look correct? Would you like to:**
+- **Proceed** with this agent roster?
+- **Modify** the agent selection or responsibilities?
+- **Add/remove** agents from the roster?
+```
+
 #### Option 2: Workflow Redesign
 
 **Workflow Designer Agent actions:**
@@ -1404,11 +1490,16 @@ You can create the agent yourself and resume when ready.
 1. Read conversation_summary.md
 2. Launch Agent Roster Designer (Task tool)
 3. Read orchestration/agent_roster.json
-4. IF missing_agents array is not empty:
-   → Present options to user (create/modify/pause)
-   → Wait for user decision
-5. ELSE:
-   → Continue with workflow design
+4. ALWAYS present roster to user for approval:
+   → Show all agents with roles/responsibilities
+   → Show mapping of agents to plan actions
+   → Show dependencies between agents
+   → IF missing_agents array is not empty:
+      → Present three options (create/modify/pause)
+   → ELSE:
+      → Request approval to proceed with agent selection
+5. Wait for user approval/decision
+6. Continue with workflow design
 ```
 
 #### Agent Roster Designer Contract
@@ -1422,16 +1513,29 @@ You can create the agent yourself and resume when ready.
 
 **Agent must:**
 - Check existence of every agent it proposes
+- **Map agents to specific plan actions** from conversation summary
+- Provide `plan_actions` array for each agent showing concrete tasks
+- Ensure plan_actions are specific, actionable, and traceable to requirements
 - Provide complete creation guidance for missing agents
 - Set `requires_user_action: true` if any agents missing
 - Include registry entry specifications for missing agents
 
+**Plan action mapping requirements:**
+- Each agent must have 3-7 specific actions listed
+- Actions should be concrete and verifiable (not vague)
+- Actions must be traceable to conversation summary requirements
+- Actions should show the full scope of agent's responsibilities
+
 ### Benefits of This Approach
 
 ✅ **Clear discovery mechanism** - Registry provides single source of truth
+✅ **User validation required** - Roster always presented for approval before proceeding
+✅ **Transparent agent selection** - User sees exactly which agents will do what work
+✅ **Action-level visibility** - Mapping from requirements to concrete agent tasks
+✅ **Early course correction** - User can modify agent selection before workflow design completes
 ✅ **Graceful degradation** - Workflow can adapt when agents missing
 ✅ **User choice** - Three clear options when agents don't exist
-✅ **Structured output** - Machine-readable agent roster format
+✅ **Structured output** - Machine-readable agent roster format with action mappings
 ✅ **Guided creation** - Complete specifications for missing agents
 ✅ **File-based** - Consistent with orchestration system philosophy
 ✅ **Resumable** - User can pause and resume workflow design
