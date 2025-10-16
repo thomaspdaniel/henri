@@ -66,6 +66,8 @@ These agents are launched via Task tool for autonomous work without user interac
 project/
 ├── orchestration/
 │   ├── conversation_summary_[taskname].md    # plan context for Workflow Designer Agent
+│   ├── agent_roster.json                     # agents needed with existence flags (from Agent Roster Designer)
+│   ├── workflow_sequence.json                # execution phases and parallelism (from Workflow Sequencing Agent)
 │   ├── workflow_coordination_plan.md         # workflow design for Workflow Executor
 │   ├── shared_status.json                    # overall coordination state
 │   └── agents/
@@ -303,25 +305,42 @@ The Risk Assessment Coordinator Agent drives the risk assessment process and wor
    - Output: Best practices documentation per technology/task type
    - **Storage:** Research preserved long-term for reuse across workflows (storage location TBD)
 
-2. **Doer Agent Consultation** (coordinated by Risk Coordinator)
-   - Risk Coordinator identifies which specialized Doer agents to consult based on agent roster
-   - Consults Doer agents (via prompts/questions) for technology-specific risk identification
-   - Doer agents provide domain expertise on risks in their specialty areas
-   - Output: Technology-specific risk assessments from domain experts
+2. **Risk Category Checklist Agent** (Claude agent via Task tool)
+   - Generates domain-specific risk checklists for each agent type based on best practices research
+   - Creates structured risk assessment frameworks tailored to specific technologies
+   - Identifies critical risk categories (data loss, security, performance, availability, reversibility, dependencies)
+   - Provides consultation prompts for Risk Coordinator to use when consulting Doer agents
+   - **Inputs**: Conversation summary, agent roster, technology stack, best practices research outputs
+   - **Output**: Structured risk checklists per agent type with consultation prompts
+   - **Context Efficiency Rationale**: Generates checklists on-demand during risk assessment only; keeps Doer agent contexts clean during normal work execution (no risk assessment content loaded when unnecessary)
+   - **Example checklist categories**:
+     - Data Loss & Corruption: backup mechanisms, rollback procedures, data integrity validation
+     - Security: authentication, authorization, encryption, injection risks
+     - Performance: scalability, resource exhaustion, bottlenecks
+     - Availability: downtime, cascading failures, timeout handling
+     - Reversibility: rollback capability, recovery procedures
+     - Dependencies: external services, version compatibility, breaking changes
 
-3. **PoC Recommendation Agent** (Claude agent via Task tool)
-   - Takes research outputs + doer consultations
+3. **Doer Agent Consultation** (coordinated by Risk Coordinator)
+   - Risk Coordinator identifies which specialized Doer agents to consult based on agent roster
+   - Uses risk checklists from Risk Category Checklist Agent to guide structured consultation
+   - Consults Doer agents (via prompts/questions) with task-specific checklists for technology-specific risk identification
+   - Doer agents review checklists and identify applicable risks in their specialty areas
+   - Output: Technology-specific risk assessments from domain experts (structured by checklist categories)
+
+4. **PoC Recommendation Agent** (Claude agent via Task tool)
+   - Takes research outputs + doer consultations + risk checklists
    - Synthesizes inputs into specific PoC task recommendations
    - Specifies evidence requirements for each PoC (what success/failure looks like)
    - Output: PoC task specifications with success/failure criteria
 
-4. **PoC Integration Agent** (Claude agent via Task tool)
+5. **PoC Integration Agent** (Claude agent via Task tool)
    - Takes PoC recommendations + workflow sequence
    - Determines where PoCs should run (early, before dependent tasks)
    - Updates workflow sequence to include PoCs in correct positions
    - Output: Updated workflow sequence with PoCs integrated
 
-5. **Best Practices Integration Agent** (Claude agent via Task tool)
+6. **Best Practices Integration Agent** (Claude agent via Task tool)
    - Takes best practices research + agent roster + agent instructions (drafts)
    - Embeds relevant best practices into each Doer agent's instructions
    - Ensures Doer agents follow best practices during work (not just risk assessment)
@@ -329,6 +348,7 @@ The Risk Assessment Coordinator Agent drives the risk assessment process and wor
 
 **Coordinator Outputs:**
 - Risk assessment report
+- Risk category checklists per agent type
 - PoC task specifications with success/failure criteria
 - Updated workflow plan with PoC tasks integrated
 - Enhanced agent instructions with best practices embedded
@@ -336,6 +356,8 @@ The Risk Assessment Coordinator Agent drives the risk assessment process and wor
 
 **Example risky assumptions:**
 - "Database schema migration will work without conflicts"
+- "Data migration won't lose or corrupt existing records"
+- "Rollback procedures can safely restore previous state"
 - "Third-party API rate limits won't affect our workflow"
 - "Legacy codebase uses consistent naming patterns"
 - "Performance requirements are achievable with current architecture"
@@ -562,7 +584,7 @@ When doer agents encounter blocking issues during work, they follow this escalat
    - Workflow restructuring to break dependency cycles
    - Deeper requirements clarification with user
    - Add intermediate agents/tasks to resolve dependencies
-   - Workflow Adaptation Agent updates workflow_coordination_plan.md to reflect structural changes
+   - Workflow Adaptation Agent updates workflow_sequence.json (execution plan) and workflow_coordination_plan.md (narrative) to reflect structural changes
 
 #### Why Route Through Escalation Resolution Agent
 
@@ -570,7 +592,7 @@ When doer agents encounter blocking issues during work, they follow this escalat
 - Answers that change workflow assumptions trigger Workflow Adaptation Agent
 - Planning gaps revealed by questions get addressed (via Workflow Adaptation Agent)
 - Answers don't create conflicts with other agents' work
-- workflow_coordination_plan.md stays synchronized with execution reality
+- workflow_sequence.json and workflow_coordination_plan.md stay synchronized with execution reality
 - Design Verifier validation may be triggered if significant changes occur
 
 ## Agent Coordination Mechanics
@@ -585,13 +607,15 @@ The orchestration system uses a **turn-based execution model** for autonomous ag
 
 The Workflow Executor (running as interactive agent via slash command) uses the **Task tool** to launch autonomous agents:
 
-1. Workflow Executor reads `workflow_coordination_plan.md` to determine which agent should work next (following the sequencing plan created by the Workflow Architecture Group)
-2. Identifies agents ready to work according to the plan (dependencies satisfied, status = `pending`)
-3. Launches agent using Task tool: `Task(subagent_type="database_agent", prompt="...")`
-4. **Task tool blocks** until the agent completes its turn
-5. When Task tool returns, Workflow Executor knows the turn has ended
-6. Workflow Executor reads updated `shared_status.json` and agent files to see results
-7. Decides next action based on the workflow plan (launch next agent per sequencing, handle escalations, invoke verifier, etc.)
+1. Workflow Executor reads `workflow_sequence.json` to determine execution phases and parallelism (machine-readable format from Workflow Sequencing Agent)
+2. For current phase, identifies agents ready to work (dependencies satisfied, status = `pending`)
+3. If phase is parallel, launches all phase agents simultaneously via multiple Task tool calls
+4. If phase is sequential, launches single agent via Task tool
+5. **Task tool blocks** until the agent completes its turn
+6. When Task tool returns, Workflow Executor knows the turn has ended
+7. Workflow Executor reads updated `shared_status.json` and agent files to see results
+8. Once all agents in phase complete, advances to next phase per workflow_sequence.json
+9. Handles escalations, verification failures, and errors as they occur during execution
 
 **Note**: The Workflow Executor does not make scheduling or sequencing decisions. It executes the plan created by the Workflow Architecture Group, which specifies agent order, parallelism, and coordination logic.
 
@@ -784,11 +808,18 @@ The Workflow Designer Agent can ask questions back to the user or request consul
 
 #### Output: Workflow Design
 The Workflow Designer Agent produces:
+- `agent_roster.json` containing:
+  - Agents needed with existence flags
+  - Basic agent-level dependencies
+  - Missing agent specifications (if any)
+- `workflow_sequence.json` containing:
+  - Execution phases with parallelism specifications
+  - Dependency graph
+  - Critical path analysis
 - `workflow_coordination_plan.md` containing:
-  - Agent roster with roles and dependencies
-  - Overall workflow sequencing (which agents run sequentially vs in parallel)
+  - Narrative description of workflow design
   - Validation checkpoints and escalation procedures
-  - Execution plan for Workflow Executor (order of agent invocation, parallelism specifications)
+  - Human-readable execution plan overview
 - Initial `shared_status.json` with all agents and dependencies
 - `agent_instructions.md` for each agent (token-efficient, agent-specific guidance)
 - List of required agent types (both existing and new agents to be created)
@@ -817,6 +848,216 @@ The Workflow Designer Agent **always uses specialized sub-agents** to handle det
    - Analyzes task dependencies and blocking conditions
    - Understands what can safely run in parallel
    - Output: Workflow sequence with dependency chains
+
+   **Detailed Specification:**
+
+   **Inputs:**
+   1. `orchestration/conversation_summary_[taskname].md`
+      - "Dependencies & Integration Points" section
+      - Technical context about system integration
+      - External service dependencies
+   2. `orchestration/agent_roster.json`
+      - Agent-level dependencies (from Agent Roster Designer)
+      - Example: `"api_agent": {"dependencies": ["database_agent"]}`
+      - Capabilities required by each agent
+   3. File communication contracts (from File Structure Designer)
+      - What files each agent reads/writes
+      - Data flow between agents
+   4. Validation checkpoint specifications (from Validation Checkpoint Designer)
+      - Which agents require verification
+      - When verification should occur
+
+   **What Agent Roster Designer Provides vs What Sequencing Agent Determines:**
+   - **Agent Roster Designer provides**: WHAT agents are needed + basic agent-level dependencies
+   - **Workflow Sequencing Agent determines**: WHEN agents run + HOW they coordinate (sequential/parallel)
+
+   **Example:**
+   - Agent Roster Designer: "api_agent depends on database_agent"
+   - Workflow Sequencing Agent: "Step 1: database_agent. Step 2: database_verifier. Step 3 (parallel): api_agent + frontend_agent. Step 4: api_verifier + frontend_verifier."
+
+   **Decision Algorithm:**
+
+   1. **Build Dependency Graph**
+      - Read agent dependencies from agent_roster.json
+      - Add verification dependencies (verifier must follow doer)
+      - Add file-based dependencies (agent reads another's output)
+      - Detect circular dependencies → error if found
+
+   2. **Identify Parallelization Opportunities**
+      - Agents with no dependencies can start immediately
+      - Agents with satisfied dependencies can run in parallel IF:
+        - They don't write to the same files
+        - They don't have resource conflicts
+        - They have independent data flows
+      - Example: api_agent and frontend_agent can run in parallel if both depend only on database_agent
+
+   3. **Insert Verification Steps**
+      - After each doer agent completes → verifier step
+      - Verification must complete before dependent agents start
+      - Multiple independent verifiers can run in parallel
+
+   4. **Determine Execution Phases**
+      - Phase = set of agents that can run in parallel
+      - Phase boundaries = synchronization points
+      - Example:
+        ```
+        Phase 1: [database_agent]
+        Phase 2: [database_verifier]
+        Phase 3: [api_agent, frontend_agent, docs_agent]  # Parallel
+        Phase 4: [api_verifier, frontend_verifier, docs_verifier]  # Parallel
+        Phase 5: [integration_test_agent]
+        Phase 6: [integration_verifier]
+        ```
+
+   5. **Handle Special Cases**
+      - PoC tasks run before dependent main workflow tasks
+      - Archival agent runs last (after all verifiers)
+      - Solution Architect agent runs on-demand (escalation-driven, not in main sequence)
+
+   **Output Format:**
+
+   Location: `orchestration/workflow_sequence.json`
+
+   ```json
+   {
+     "task_id": "implement_user_management",
+     "created": 1729008000,
+     "execution_phases": [
+       {
+         "phase_id": 1,
+         "phase_name": "Database Schema Creation",
+         "parallel": false,
+         "agents": [
+           {
+             "agent_name": "database_agent",
+             "agent_type": "doer",
+             "dependencies_satisfied_by_phase": null,
+             "estimated_duration": "unknown"
+           }
+         ]
+       },
+       {
+         "phase_id": 2,
+         "phase_name": "Database Verification",
+         "parallel": false,
+         "agents": [
+           {
+             "agent_name": "database_verifier",
+             "agent_type": "verifier",
+             "verifies": ["database_agent"],
+             "dependencies_satisfied_by_phase": 1
+           }
+         ]
+       },
+       {
+         "phase_id": 3,
+         "phase_name": "Service Layer Implementation",
+         "parallel": true,
+         "agents": [
+           {
+             "agent_name": "api_agent",
+             "agent_type": "doer",
+             "dependencies_satisfied_by_phase": 2,
+             "estimated_duration": "unknown"
+           },
+           {
+             "agent_name": "frontend_agent",
+             "agent_type": "doer",
+             "dependencies_satisfied_by_phase": 2,
+             "estimated_duration": "unknown"
+           }
+         ]
+       },
+       {
+         "phase_id": 4,
+         "phase_name": "Service Layer Verification",
+         "parallel": true,
+         "agents": [
+           {
+             "agent_name": "api_verifier",
+             "agent_type": "verifier",
+             "verifies": ["api_agent"],
+             "dependencies_satisfied_by_phase": 3
+           },
+           {
+             "agent_name": "frontend_verifier",
+             "agent_type": "verifier",
+             "verifies": ["frontend_agent"],
+             "dependencies_satisfied_by_phase": 3
+           }
+         ]
+       }
+     ],
+     "total_phases": 4,
+     "parallelization_summary": {
+       "total_agents": 6,
+       "max_parallel_agents": 2,
+       "sequential_phases": 2,
+       "parallel_phases": 2
+     },
+     "critical_path": [
+       "database_agent",
+       "database_verifier",
+       "api_agent",
+       "api_verifier"
+     ],
+     "dependency_graph": {
+       "database_agent": [],
+       "database_verifier": ["database_agent"],
+       "api_agent": ["database_verifier"],
+       "frontend_agent": ["database_verifier"],
+       "api_verifier": ["api_agent"],
+       "frontend_verifier": ["frontend_agent"]
+     }
+   }
+   ```
+
+   **Edge Cases and Error Handling:**
+
+   1. **Circular Dependencies**
+      - Detection: Depth-first search in dependency graph
+      - Action: Error with description of cycle
+      - Example: "Circular dependency detected: api_agent → database_agent → migration_agent → api_agent"
+      - Resolution: Escalate to user via Workflow Designer Agent
+
+   2. **Missing Dependencies**
+      - Detection: Agent references dependency not in agent roster
+      - Action: Error with missing agent name
+      - Resolution: Agent Roster Designer re-runs to add missing agent
+
+   3. **Resource Conflicts**
+      - Detection: Two agents write to same file path
+      - Action: Force sequential execution (cannot parallelize)
+      - Document in workflow_sequence.json
+
+   4. **Verification Assignment Conflicts**
+      - Detection: Single verifier assigned to multiple doer agents in same phase
+      - Action: Error - verifier cannot verify in parallel
+      - Resolution: Create separate verifier instances or serialize verification
+
+   **Integration with Workflow Executor:**
+
+   The Workflow Executor reads `workflow_sequence.json` and:
+   1. Executes phases in order (phase N must complete before phase N+1)
+   2. Within a phase marked `"parallel": true`, launches all agents simultaneously via Task tool
+   3. Within a phase marked `"parallel": false`, launches single agent via Task tool
+   4. Waits for all agents in a phase to complete before advancing
+   5. Uses dependency_graph to validate state before launching agents
+
+   **Example Workflow Executor Logic:**
+   ```
+   FOR each phase in execution_phases:
+     IF phase.parallel == true:
+       Launch all phase.agents in parallel via Task tool
+       Wait for all Task tool calls to return
+     ELSE:
+       FOR each agent in phase.agents:
+         Launch agent via Task tool
+         Wait for Task tool to return
+
+     Verify all agents in phase reached expected status
+     Advance to next phase
+   ```
 
 3. **Instruction Writer Agent** (Claude agent via Task tool)
    - Reads agent templates from `~/.claude/protocols/orchestration_*_agent_template.md`
@@ -872,6 +1113,328 @@ The Workflow Designer Agent **always uses specialized sub-agents** to handle det
 - Workflow Designer Agent maintains overall design authority
 - Scripts handle mechanical operations efficiently
 - No complexity penalty for using specialized agents
+
+## Agent Discovery and Registration
+
+### Agent Registry Structure
+
+**Location:** `~/.claude/protocols/orchestration_agent_registry.json`
+
+**Purpose:** Single source of truth for all available agent types in the orchestration system.
+
+**Format:**
+```json
+{
+  "version": "1.0",
+  "last_updated": 1729008000,
+  "agent_types": {
+    "database_agent": {
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
+      "capabilities": ["sql", "schema_design", "migrations", "data_modeling"],
+      "description": "Creates and modifies database schemas, writes SQL migrations"
+    },
+    "api_agent": {
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
+      "capabilities": ["rest_api", "http", "endpoint_design"],
+      "description": "Designs and implements REST API endpoints"
+    },
+    "frontend_agent": {
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
+      "capabilities": ["ui", "react", "forms", "validation"],
+      "description": "Implements frontend components and user interfaces"
+    },
+    "verifier_agent": {
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_verifier_agent_template.md",
+      "capabilities": ["validation", "testing", "evidence_review"],
+      "description": "Validates doer agent outputs and completion drive reviews"
+    },
+    "solution_architect_agent": {
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_solution_architect_agent_template.md",
+      "capabilities": ["architecture", "technology_selection", "design_decisions"],
+      "description": "Makes technical architecture decisions and design choices"
+    },
+    "archival_agent": {
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_archival_agent_template.md",
+      "capabilities": ["cleanup", "archival", "session_management"],
+      "description": "Archives session files and manages workspace cleanup"
+    }
+  },
+  "interactive_agents": {
+    "plan_developer": {
+      "invocation_pattern": "slash_command",
+      "slash_command": "/persona-plan-developer",
+      "command_file": "~/.claude/commands/persona-plan-developer.md",
+      "description": "Conducts requirements gathering conversation with user"
+    },
+    "workflow_designer": {
+      "invocation_pattern": "slash_command",
+      "slash_command": "/persona-workflow-designer",
+      "command_file": "~/.claude/commands/persona-workflow-designer.md",
+      "description": "Creates multi-agent workflow designs from conversation summaries"
+    },
+    "design_verifier": {
+      "invocation_pattern": "slash_command",
+      "slash_command": "/persona-design-verifier",
+      "command_file": "~/.claude/commands/persona-design-verifier.md",
+      "description": "Reviews workflow designs for completeness and consistency"
+    },
+    "workflow_executor": {
+      "invocation_pattern": "slash_command",
+      "slash_command": "/persona-workflow-executor",
+      "command_file": "~/.claude/commands/persona-workflow-executor.md",
+      "description": "Executes workflow plans by launching agents in sequence"
+    },
+    "risk_assessment": {
+      "invocation_pattern": "slash_command",
+      "slash_command": "/persona-risk-assessment",
+      "command_file": "~/.claude/commands/persona-risk-assessment.md",
+      "description": "Identifies risky assumptions and coordinates PoC validation"
+    },
+    "escalation_resolution": {
+      "invocation_pattern": "slash_command",
+      "slash_command": "/persona-escalation-resolution",
+      "command_file": "~/.claude/commands/persona-escalation-resolution.md",
+      "description": "Handles escalations from blocked agents"
+    },
+    "workflow_adaptation": {
+      "invocation_pattern": "slash_command",
+      "slash_command": "/persona-workflow-adaptation",
+      "command_file": "~/.claude/commands/persona-workflow-adaptation.md",
+      "description": "Makes surgical runtime updates to workflow plans"
+    }
+  }
+}
+```
+
+### Agent Roster Designer Process
+
+The Agent Roster Designer (ARD) is a specialized sub-agent launched by the Workflow Designer Agent to determine which agents are needed for a workflow.
+
+#### Phase 1: Analyze Requirements
+**Input:** Conversation summary
+**Actions:**
+1. Read conversation summary to understand required work
+2. Identify technical domains (database, API, frontend, DevOps, etc.)
+3. Map domains to potential agent types
+4. Determine agent capabilities needed
+
+**Output:** Draft agent roster (internal, not written to disk)
+
+#### Phase 2: Check Agent Existence
+**Input:** Draft agent roster
+**Actions:**
+1. Read `~/.claude/protocols/orchestration_agent_registry.json`
+2. For each agent in draft roster:
+   - Check if agent type exists in registry
+   - Verify template file exists (for task_tool agents)
+   - Verify slash command file exists (for interactive agents)
+3. Flag agents as `exists: true` or `exists: false`
+
+**Output:** Validated agent roster with existence flags
+
+#### Phase 3: Generate Agent Roster Document
+**Location:** `orchestration/agent_roster.json`
+
+**Format:**
+```json
+{
+  "task_id": "implement_user_management",
+  "created": 1729008000,
+  "agents": {
+    "database_agent": {
+      "role": "Create users table with authentication fields",
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
+      "exists": true,
+      "dependencies": [],
+      "capabilities_required": ["sql", "schema_design", "migrations"]
+    },
+    "api_agent": {
+      "role": "Implement user CRUD endpoints",
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
+      "exists": true,
+      "dependencies": ["database_agent"],
+      "capabilities_required": ["rest_api", "http", "endpoint_design"]
+    },
+    "data_migration_agent": {
+      "role": "Migrate legacy user data to new schema",
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
+      "exists": false,
+      "creation_guidance": {
+        "reason": "Need specialized agent for safe data migration with rollback capability",
+        "base_template": "orchestration_doer_agent_template.md",
+        "additional_capabilities": ["data_migration", "rollback", "validation"],
+        "slash_command_name": null,
+        "registry_entry": {
+          "agent_type": "data_migration_agent",
+          "invocation_pattern": "task_tool",
+          "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
+          "capabilities": ["data_migration", "rollback", "validation", "data_integrity"],
+          "description": "Safely migrates data between schemas with rollback capability"
+        }
+      },
+      "dependencies": ["database_agent"],
+      "capabilities_required": ["data_migration", "rollback", "validation"]
+    },
+    "verifier_agent": {
+      "role": "Validate all agent outputs",
+      "invocation_pattern": "task_tool",
+      "template": "~/.claude/protocols/orchestration_verifier_agent_template.md",
+      "exists": true,
+      "dependencies": [],
+      "capabilities_required": ["validation", "testing", "evidence_review"]
+    }
+  },
+  "missing_agents": ["data_migration_agent"],
+  "requires_user_action": true
+}
+```
+
+### Missing Agent Handling Workflow
+
+When the Agent Roster Designer detects that required agents don't exist in the registry, the Workflow Designer Agent presents three options to the user:
+
+#### Option 1: Create Missing Agents (Recommended)
+
+**Workflow Designer Agent orchestrates guided creation:**
+
+1. **Generate agent specification** (already in agent_roster.json)
+2. **Interactive creation conversation**:
+   - Ask clarifying questions about agent requirements
+   - Understand data types, operations, constraints
+   - Determine validation and rollback strategies
+3. **Create agent template customization** (if needed beyond base template)
+4. **Update registry**:
+   - Add entry to `orchestration_agent_registry.json`
+   - Write any custom templates if required
+5. **Mark agent as existing** in agent_roster.json
+6. **Continue workflow design**
+
+**Example user presentation:**
+```markdown
+## Agent Roster Analysis Complete
+
+I've identified the agents needed for this workflow. However, some agents don't exist yet:
+
+### Existing Agents (Ready to Use)
+✅ database_agent - Create users table with authentication fields
+✅ api_agent - Implement user CRUD endpoints
+✅ verifier_agent - Validate all agent outputs
+
+### Missing Agents (Need Creation)
+❌ **data_migration_agent** - Migrate legacy user data to new schema
+   - **Why needed:** Specialized agent for safe data migration with rollback capability
+   - **Base template:** orchestration_doer_agent_template.md
+   - **Additional capabilities:** data_migration, rollback, validation
+   - **Invocation:** Task tool (autonomous agent)
+
+### Next Steps
+
+**Option 1: Create Missing Agents (Recommended)**
+I can guide you through creating the data_migration_agent:
+1. We'll use the orchestration_doer_agent_template.md as base
+2. Add data migration-specific guidance
+3. Register in orchestration_agent_registry.json
+4. Ready to use immediately
+
+**Option 2: Modify Workflow to Use Existing Agents**
+I can redesign the workflow to use existing agents (may be less specialized):
+- database_agent could handle migration (less safe, no specialized rollback)
+- May require additional manual validation steps
+
+**Option 3: Pause and Create Manually**
+You can create the agent yourself and resume when ready.
+
+**Which option would you like to proceed with?**
+```
+
+#### Option 2: Workflow Redesign
+
+**Workflow Designer Agent actions:**
+
+1. **Consult with user** about trade-offs
+2. **Modify agent roster** to remove missing agent
+3. **Redistribute responsibilities** to existing agents
+4. **Update dependencies** in agent roster
+5. **Document limitations** in workflow_coordination_plan.md
+6. **Continue workflow design**
+
+#### Option 3: Pause and Resume
+
+**Workflow Designer Agent actions:**
+
+1. **Write agent_roster.json** with missing agent specifications
+2. **Write creation_instructions.md**:
+   ```markdown
+   # Agent Creation Instructions
+
+   ## data_migration_agent
+
+   ### Registry Entry
+   Add this to `~/.claude/protocols/orchestration_agent_registry.json`:
+
+   ```json
+   "data_migration_agent": {
+     "invocation_pattern": "task_tool",
+     "template": "~/.claude/protocols/orchestration_doer_agent_template.md",
+     "capabilities": ["data_migration", "rollback", "validation", "data_integrity"],
+     "description": "Safely migrates data between schemas with rollback capability"
+   }
+   ```
+
+   ### When Ready
+   Run: `/persona-workflow-designer` to resume workflow design
+   ```
+
+3. **Exit workflow designer** with clear resume instructions
+
+### Integration with Workflow Designer Agent
+
+#### Workflow Designer Agent Startup Sequence
+
+```
+1. Read conversation_summary.md
+2. Launch Agent Roster Designer (Task tool)
+3. Read orchestration/agent_roster.json
+4. IF missing_agents array is not empty:
+   → Present options to user (create/modify/pause)
+   → Wait for user decision
+5. ELSE:
+   → Continue with workflow design
+```
+
+#### Agent Roster Designer Contract
+
+**Inputs:**
+- `orchestration/conversation_summary_[taskname].md`
+- `~/.claude/protocols/orchestration_agent_registry.json`
+
+**Outputs:**
+- `orchestration/agent_roster.json` (structured format shown above)
+
+**Agent must:**
+- Check existence of every agent it proposes
+- Provide complete creation guidance for missing agents
+- Set `requires_user_action: true` if any agents missing
+- Include registry entry specifications for missing agents
+
+### Benefits of This Approach
+
+✅ **Clear discovery mechanism** - Registry provides single source of truth
+✅ **Graceful degradation** - Workflow can adapt when agents missing
+✅ **User choice** - Three clear options when agents don't exist
+✅ **Structured output** - Machine-readable agent roster format
+✅ **Guided creation** - Complete specifications for missing agents
+✅ **File-based** - Consistent with orchestration system philosophy
+✅ **Resumable** - User can pause and resume workflow design
 
 ### Design Philosophy
 - **Context over templates**: Conversation summaries capture the "why" not just the "what"
@@ -1191,12 +1754,15 @@ All sub-items resolved. Timeout handling addressed in Issue 5.
    - Reads agent templates from `~/.claude/protocols/orchestration_*_agent_template.md`
    - Creates `agent_instructions.md` for each agent by customizing templates
    - Creates initial `shared_status.json` with all agents and dependencies
-   - Creates `workflow_coordination_plan.md` with execution sequence
+   - Creates `agent_roster.json` with agent specifications
+   - Creates `workflow_sequence.json` with execution phases and parallelism
+   - Creates `workflow_coordination_plan.md` with narrative workflow description
    - Creates `completion_drive/`, `task_output/` subdirectories for each agent
 
 3. **Workflow Executor** (activated via `/persona-workflow-executor`):
-   - Reads `workflow_coordination_plan.md` and `shared_status.json`
-   - Begins launching autonomous agents via Task tool
+   - Reads `workflow_sequence.json` (machine-readable execution plan) and `shared_status.json`
+   - Reads `workflow_coordination_plan.md` for human-readable context if needed
+   - Begins launching autonomous agents via Task tool according to execution phases
    - Autonomous agents create their own `session_current.json` files when they start work
 
 **File creation responsibility**: Interactive agents (slash command pattern) create orchestration files. Autonomous agents (Task tool pattern) only create their session files.
@@ -1220,7 +1786,7 @@ All sub-items resolved. Timeout handling addressed in Issue 5.
 ### Q1: Concurrent Agent Execution
 **Status**: ✅ **ANSWERED**
 
-Yes, multiple independent agents can work in parallel if the Workflow Architecture Group specifies parallel execution in `workflow_coordination_plan.md`. The decision about sequential vs parallel execution is made during workflow design, not by the Workflow Executor at runtime. The Executor simply follows the sequencing plan created by the Architecture Group.
+Yes, multiple independent agents can work in parallel if the Workflow Sequencing Agent (part of the Workflow Architecture Group) specifies parallel execution in `workflow_sequence.json`. The decision about sequential vs parallel execution is made during workflow design, not by the Workflow Executor at runtime. The Executor simply follows the execution phases specified in workflow_sequence.json, launching all agents in a parallel phase simultaneously via multiple Task tool calls.
 
 ### Q2: User Intervention Points
 **Status**: ✅ **ANSWERED**
@@ -1260,7 +1826,9 @@ User explicitly activates Workflow Designer Agent via slash command (e.g., `/per
 What defines "simple" workflows that don't need sub-agent delegation? Agent count? Complexity metric?
 
 ### Q9: Agent Discovery and Registration
-How does the system know what agent types exist? Is there a registry?
+**Status**: ✅ **ANSWERED**
+
+See "Agent Discovery and Registration" section (line 1117) for complete specification including agent registry structure, Agent Roster Designer process, missing agent handling workflow, and integration with Workflow Designer Agent.
 
 ### Q10: Escalation Priority with Multiple Blocked Agents
 **Status**: ✅ **ANSWERED**

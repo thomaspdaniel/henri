@@ -722,6 +722,94 @@
 <node STYLE="bubble" TEXT="5-step resolution process documented" ID="ID_1635219742" CREATED="1759714995170" MODIFIED="1759714995170"/>
 </node>
 </node>
+<node STYLE="bubble" TEXT="Agent Discovery &amp; Registration" POSITION="top_or_left" ID="ID_289045700" CREATED="1760555000001" MODIFIED="1760555000001" BACKGROUND_COLOR="#e6f3ff">
+<font NAME="SansSerif" SIZE="12" BOLD="true"/>
+<node STYLE="bubble" TEXT="Agent Registry" ID="ID_289045701" CREATED="1760555000002" MODIFIED="1760555000002" BACKGROUND_COLOR="#cce5ff">
+<icon BUILTIN="list"/>
+<node STYLE="bubble" TEXT="Location: ~/.claude/protocols/orchestration_agent_registry.json" ID="ID_289045702" CREATED="1760555000003" MODIFIED="1760555000003"/>
+<node STYLE="bubble" TEXT="Single source of truth for all agent types" ID="ID_289045703" CREATED="1760555000004" MODIFIED="1760555000004"/>
+<node STYLE="bubble" TEXT="Contains" ID="ID_289045704" CREATED="1760555000005" MODIFIED="1760555000005">
+<node STYLE="bubble" TEXT="agent_types (task_tool pattern)" ID="ID_289045705" CREATED="1760555000006" MODIFIED="1760555000006">
+<node STYLE="bubble" TEXT="invocation_pattern, template, capabilities" ID="ID_289045706" CREATED="1760555000007" MODIFIED="1760555000007"/>
+<node STYLE="bubble" TEXT="Example: database_agent, api_agent, frontend_agent" ID="ID_289045707" CREATED="1760555000008" MODIFIED="1760555000008"/>
+</node>
+<node STYLE="bubble" TEXT="interactive_agents (slash command pattern)" ID="ID_289045708" CREATED="1760555000009" MODIFIED="1760555000009">
+<node STYLE="bubble" TEXT="slash_command, command_file" ID="ID_289045709" CREATED="1760555000010" MODIFIED="1760555000010"/>
+<node STYLE="bubble" TEXT="Example: plan_developer, workflow_designer, design_verifier" ID="ID_289045710" CREATED="1760555000011" MODIFIED="1760555000011"/>
+</node>
+</node>
+</node>
+<node STYLE="bubble" TEXT="Agent Roster Designer Process" ID="ID_289045711" CREATED="1760555000012" MODIFIED="1760555000012" BACKGROUND_COLOR="#ccffcc">
+<icon BUILTIN="emoji-1F989"/>
+<node STYLE="bubble" TEXT="Sub-agent of Workflow Designer Agent" ID="ID_289045712" CREATED="1760555000013" MODIFIED="1760555000013"/>
+<node STYLE="bubble" TEXT="Phase 1: Analyze Requirements" ID="ID_289045713" CREATED="1760555000014" MODIFIED="1760555000014">
+<node STYLE="bubble" TEXT="Read conversation summary" ID="ID_289045714" CREATED="1760555000015" MODIFIED="1760555000015"/>
+<node STYLE="bubble" TEXT="Identify technical domains" ID="ID_289045715" CREATED="1760555000016" MODIFIED="1760555000016"/>
+<node STYLE="bubble" TEXT="Map domains to agent types" ID="ID_289045716" CREATED="1760555000017" MODIFIED="1760555000017"/>
+<node STYLE="bubble" TEXT="Output: Draft agent roster" ID="ID_289045717" CREATED="1760555000018" MODIFIED="1760555000018"/>
+</node>
+<node STYLE="bubble" TEXT="Phase 2: Check Agent Existence" ID="ID_289045718" CREATED="1760555000019" MODIFIED="1760555000019">
+<node STYLE="bubble" TEXT="Read orchestration_agent_registry.json" ID="ID_289045719" CREATED="1760555000020" MODIFIED="1760555000020"/>
+<node STYLE="bubble" TEXT="Check if each agent exists in registry" ID="ID_289045720" CREATED="1760555000021" MODIFIED="1760555000021"/>
+<node STYLE="bubble" TEXT="Verify template files exist" ID="ID_289045721" CREATED="1760555000022" MODIFIED="1760555000022"/>
+<node STYLE="bubble" TEXT="Flag: exists: true or exists: false" ID="ID_289045722" CREATED="1760555000023" MODIFIED="1760555000023"/>
+</node>
+<node STYLE="bubble" TEXT="Phase 3: Generate Agent Roster Document" ID="ID_289045723" CREATED="1760555000024" MODIFIED="1760555000024">
+<node STYLE="bubble" TEXT="Output: orchestration/agent_roster.json" ID="ID_289045724" CREATED="1760555000025" MODIFIED="1760555000025" BACKGROUND_COLOR="#ffffcc">
+<icon BUILTIN="list"/>
+</node>
+<node STYLE="bubble" TEXT="Contains: agent roles, dependencies, capabilities" ID="ID_289045725" CREATED="1760555000026" MODIFIED="1760555000026"/>
+<node STYLE="bubble" TEXT="Lists missing_agents array" ID="ID_289045726" CREATED="1760555000027" MODIFIED="1760555000027"/>
+<node STYLE="bubble" TEXT="Sets requires_user_action: true if agents missing" ID="ID_289045727" CREATED="1760555000028" MODIFIED="1760555000028"/>
+<node STYLE="bubble" TEXT="Includes creation_guidance for missing agents" ID="ID_289045728" CREATED="1760555000029" MODIFIED="1760555000029"/>
+</node>
+</node>
+<node STYLE="bubble" TEXT="Missing Agent Handling" ID="ID_289045729" CREATED="1760555000030" MODIFIED="1760555000030" BACKGROUND_COLOR="#cce5ff">
+<icon BUILTIN="emoji-1F427"/>
+<node STYLE="bubble" TEXT="Workflow Designer presents 3 options" ID="ID_289045730" CREATED="1760555000031" MODIFIED="1760555000031"/>
+<node STYLE="bubble" TEXT="Option 1: Create Missing Agents (Recommended)" ID="ID_289045731" CREATED="1760555000032" MODIFIED="1760555000032" BACKGROUND_COLOR="#e6ffe6">
+<icon BUILTIN="button_ok"/>
+<node STYLE="bubble" TEXT="Guided interactive creation" ID="ID_289045732" CREATED="1760555000033" MODIFIED="1760555000033"/>
+<node STYLE="bubble" TEXT="Ask clarifying questions" ID="ID_289045733" CREATED="1760555000034" MODIFIED="1760555000034"/>
+<node STYLE="bubble" TEXT="Customize from base template" ID="ID_289045734" CREATED="1760555000035" MODIFIED="1760555000035"/>
+<node STYLE="bubble" TEXT="Update orchestration_agent_registry.json" ID="ID_289045735" CREATED="1760555000036" MODIFIED="1760555000036"/>
+<node STYLE="bubble" TEXT="Continue workflow design" ID="ID_289045736" CREATED="1760555000037" MODIFIED="1760555000037"/>
+</node>
+<node STYLE="bubble" TEXT="Option 2: Modify Workflow" ID="ID_289045737" CREATED="1760555000038" MODIFIED="1760555000038" BACKGROUND_COLOR="#fffbe6">
+<icon BUILTIN="messagebox_warning"/>
+<node STYLE="bubble" TEXT="Redesign workflow to use existing agents" ID="ID_289045738" CREATED="1760555000039" MODIFIED="1760555000039"/>
+<node STYLE="bubble" TEXT="Redistribute responsibilities" ID="ID_289045739" CREATED="1760555000040" MODIFIED="1760555000040"/>
+<node STYLE="bubble" TEXT="May be less specialized" ID="ID_289045740" CREATED="1760555000041" MODIFIED="1760555000041"/>
+<node STYLE="bubble" TEXT="Document limitations" ID="ID_289045741" CREATED="1760555000042" MODIFIED="1760555000042"/>
+</node>
+<node STYLE="bubble" TEXT="Option 3: Pause and Create Manually" ID="ID_289045742" CREATED="1760555000043" MODIFIED="1760555000043" BACKGROUND_COLOR="#f0e6ff">
+<icon BUILTIN="idea"/>
+<node STYLE="bubble" TEXT="Write creation_instructions.md" ID="ID_289045743" CREATED="1760555000044" MODIFIED="1760555000044"/>
+<node STYLE="bubble" TEXT="Include registry entry specifications" ID="ID_289045744" CREATED="1760555000045" MODIFIED="1760555000045"/>
+<node STYLE="bubble" TEXT="Exit with resume instructions" ID="ID_289045745" CREATED="1760555000046" MODIFIED="1760555000046"/>
+<node STYLE="bubble" TEXT="User can resume workflow design later" ID="ID_289045746" CREATED="1760555000047" MODIFIED="1760555000047"/>
+</node>
+</node>
+<node STYLE="bubble" TEXT="Integration with Workflow Designer" ID="ID_289045747" CREATED="1760555000048" MODIFIED="1760555000048" BACKGROUND_COLOR="#e6f3ff">
+<icon BUILTIN="idea"/>
+<node STYLE="bubble" TEXT="Startup Sequence" ID="ID_289045748" CREATED="1760555000049" MODIFIED="1760555000049">
+<node STYLE="bubble" TEXT="1. Read conversation_summary.md" ID="ID_289045749" CREATED="1760555000050" MODIFIED="1760555000050"/>
+<node STYLE="bubble" TEXT="2. Launch Agent Roster Designer (Task tool)" ID="ID_289045750" CREATED="1760555000051" MODIFIED="1760555000051"/>
+<node STYLE="bubble" TEXT="3. Read orchestration/agent_roster.json" ID="ID_289045751" CREATED="1760555000052" MODIFIED="1760555000052"/>
+<node STYLE="bubble" TEXT="4. IF missing_agents not empty: Present options" ID="ID_289045752" CREATED="1760555000053" MODIFIED="1760555000053"/>
+<node STYLE="bubble" TEXT="5. ELSE: Continue workflow design" ID="ID_289045753" CREATED="1760555000054" MODIFIED="1760555000054"/>
+</node>
+</node>
+<node STYLE="bubble" TEXT="Benefits" ID="ID_289045754" CREATED="1760555000055" MODIFIED="1760555000055" BACKGROUND_COLOR="#e6ffe6">
+<icon BUILTIN="button_ok"/>
+<node STYLE="bubble" TEXT="Clear discovery mechanism" ID="ID_289045755" CREATED="1760555000056" MODIFIED="1760555000056"/>
+<node STYLE="bubble" TEXT="Graceful degradation when agents missing" ID="ID_289045756" CREATED="1760555000057" MODIFIED="1760555000057"/>
+<node STYLE="bubble" TEXT="User choice between 3 options" ID="ID_289045757" CREATED="1760555000058" MODIFIED="1760555000058"/>
+<node STYLE="bubble" TEXT="Machine-readable structured output" ID="ID_289045758" CREATED="1760555000059" MODIFIED="1760555000059"/>
+<node STYLE="bubble" TEXT="Guided agent creation" ID="ID_289045759" CREATED="1760555000060" MODIFIED="1760555000060"/>
+<node STYLE="bubble" TEXT="File-based and resumable" ID="ID_289045760" CREATED="1760555000061" MODIFIED="1760555000061"/>
+</node>
+</node>
 <node STYLE="bubble" TEXT="Open Questions" FOLDED="true" POSITION="top_or_left" ID="ID_169304789" CREATED="1759714995171" MODIFIED="1759714995171" BACKGROUND_COLOR="#fff9e6">
 <font NAME="SansSerif" SIZE="12" BOLD="true"/>
 <node STYLE="bubble" TEXT="Q1: Concurrent Agent Execution" ID="ID_1333590526" CREATED="1759714995172" MODIFIED="1759714995172" BACKGROUND_COLOR="#ccffdd">
@@ -767,10 +855,11 @@
 <node STYLE="bubble" TEXT="Agent count threshold?" ID="ID_287657003" CREATED="1759714995175" MODIFIED="1759714995175"/>
 <node STYLE="bubble" TEXT="Complexity metric?" ID="ID_532847537" CREATED="1759714995175" MODIFIED="1759714995175"/>
 </node>
-<node STYLE="bubble" TEXT="Q9: Agent Discovery" ID="ID_1480472769" CREATED="1759714995175" MODIFIED="1759714995175" BACKGROUND_COLOR="#e0e0e0">
-<icon BUILTIN="help"/>
-<node STYLE="bubble" TEXT="How does system know what agent types exist?" ID="ID_142484666" CREATED="1759714995175" MODIFIED="1759714995175"/>
-<node STYLE="bubble" TEXT="Is there a registry?" ID="ID_1925363850" CREATED="1759714995175" MODIFIED="1759714995175"/>
+<node STYLE="bubble" TEXT="Q9: Agent Discovery &amp; Registration" ID="ID_1480472769" CREATED="1759714995175" MODIFIED="1760555000000" BACKGROUND_COLOR="#ccffdd">
+<icon BUILTIN="button_ok"/>
+<node STYLE="bubble" TEXT="ANSWERED: Agent registry at ~/.claude/protocols/orchestration_agent_registry.json" ID="ID_142484666" CREATED="1759714995175" MODIFIED="1760555000000"/>
+<node STYLE="bubble" TEXT="Agent Roster Designer checks registry for agent existence" ID="ID_1925363850" CREATED="1759714995175" MODIFIED="1760555000000"/>
+<node STYLE="bubble" TEXT="See Agent Discovery &amp; Registration section" ID="ID_1925363851" CREATED="1760555000000" MODIFIED="1760555000000"/>
 </node>
 <node STYLE="bubble" TEXT="Q10: Escalation Priority" ID="ID_1576260405" CREATED="1759714995175" MODIFIED="1759714995175" BACKGROUND_COLOR="#ccffdd">
 <icon BUILTIN="button_ok"/>
