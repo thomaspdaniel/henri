@@ -87,7 +87,28 @@
 <icon BUILTIN="list"/>
 </node>
 </node>
-<node TEXT="2. Workflow Designer Agent" FOLDED="true" POSITION="bottom_or_right" ID="ID_1378861928" CREATED="1760554285795" MODIFIED="1760554285795" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
+<node TEXT="2. Solution Architect" FOLDED="true" POSITION="bottom_or_right" ID="ID_391318614" CREATED="1760554285795" MODIFIED="1760554285795" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
+<icon BUILTIN="emoji-1F427"/>
+<font NAME="SansSerif" SIZE="11"/>
+<node TEXT="Interactive (slash command)" ID="ID_1240633705" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="Conducts architecture design conversation" ID="ID_874123326" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="Upfront architecture &amp; technology selection" ID="ID_874123327" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="Runs after Plan Development, before Workflow Designer" ID="ID_874123328" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="technology_stack.json" ID="ID_637560056" CREATED="1760554285795" MODIFIED="1760554285795" BACKGROUND_COLOR="#ffffcc" STYLE="bubble">
+<icon BUILTIN="list"/>
+<node TEXT="Technology selections with rationale" ID="ID_637560057" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="Database, backend, frontend, infrastructure" ID="ID_637560058" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="Alternatives considered &amp; constraints" ID="ID_637560059" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+</node>
+<node TEXT="architecture_decisions.md" ID="ID_637560060" CREATED="1760554285795" MODIFIED="1760554285795" BACKGROUND_COLOR="#ffffcc" STYLE="bubble">
+<icon BUILTIN="list"/>
+<node TEXT="High-level system architecture" ID="ID_637560061" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="Architecture patterns &amp; principles" ID="ID_637560062" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="Security &amp; deployment architecture" ID="ID_637560063" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+<node TEXT="Living document (grows during execution)" ID="ID_637560064" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
+</node>
+</node>
+<node TEXT="3. Workflow Designer Agent" FOLDED="true" POSITION="bottom_or_right" ID="ID_1378861928" CREATED="1760554285795" MODIFIED="1760554285795" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
 <icon BUILTIN="emoji-1F427"/>
 <font NAME="SansSerif" SIZE="11"/>
 <node TEXT="Interactive (slash command)" ID="ID_550976687" CREATED="1760554285795" MODIFIED="1760554285795" STYLE="bubble"/>
@@ -183,12 +204,14 @@
 <icon BUILTIN="list"/>
 </node>
 </node>
-<node TEXT="3. Risk Assessment &amp; Validation Agent" POSITION="bottom_or_right" ID="ID_254395043" CREATED="1760554285796" MODIFIED="1760554285796" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
+<node TEXT="4. Risk Assessment &amp; Validation Agent" POSITION="bottom_or_right" ID="ID_254395043" CREATED="1760554285796" MODIFIED="1760554285796" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
 <icon BUILTIN="emoji-1F427"/>
 <font NAME="SansSerif" SIZE="11"/>
-<node TEXT="Interactive (invoked by Workflow Designer)" ID="ID_1543416841" CREATED="1760554285796" MODIFIED="1760554285796" STYLE="bubble"/>
+<node TEXT="Interactive (user-activated after Workflow Designer)" ID="ID_1543416841" CREATED="1760554285796" MODIFIED="1760554285796" STYLE="bubble"/>
+<node TEXT="Coordinates specialized sub-agents" ID="ID_1543416842" CREATED="1760554285796" MODIFIED="1760554285796" STYLE="bubble"/>
 <node TEXT="Identifies risky assumptions" ID="ID_210008542" CREATED="1760554285796" MODIFIED="1760554285796" STYLE="bubble"/>
 <node TEXT="Inserts PoC tasks into workflow" ID="ID_3995706" CREATED="1760554285796" MODIFIED="1760554285796" STYLE="bubble"/>
+<node TEXT="Embeds best practices into agent instructions" ID="ID_3995707" CREATED="1760554285796" MODIFIED="1760554285796" STYLE="bubble"/>
 <node TEXT="Launches Sub-Agents (Task tool):" FOLDED="true" ID="ID_316147960" CREATED="1760554285796" MODIFIED="1760554285796" BACKGROUND_COLOR="#e6f3ff" STYLE="bubble">
 <node TEXT="Technology Best Practices Research" FOLDED="true" ID="ID_314742225" CREATED="1760554285796" MODIFIED="1760554285796" BACKGROUND_COLOR="#ccffcc" STYLE="bubble">
 <icon BUILTIN="emoji-1F989"/>
@@ -232,7 +255,7 @@
 <icon BUILTIN="list"/>
 </node>
 </node>
-<node TEXT="4. Design Verifier Agent" FOLDED="true" POSITION="bottom_or_right" ID="ID_549328356" CREATED="1760554285797" MODIFIED="1760554285797" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
+<node TEXT="5. Design Verifier Agent" FOLDED="true" POSITION="bottom_or_right" ID="ID_549328356" CREATED="1760554285797" MODIFIED="1760554285797" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
 <icon BUILTIN="emoji-1F427"/>
 <font NAME="SansSerif" SIZE="11"/>
 <node TEXT="Interactive (slash command)" ID="ID_1940288794" CREATED="1760554285797" MODIFIED="1760554285797" STYLE="bubble"/>
@@ -248,13 +271,15 @@
 </node>
 <node TEXT="Phase 2: Execution" FOLDED="true" POSITION="bottom_or_right" ID="ID_1995863792" CREATED="1760554285797" MODIFIED="1760554285797" BACKGROUND_COLOR="#b3e6b3" STYLE="bubble">
 <font NAME="SansSerif" SIZE="12" BOLD="true"/>
-<node TEXT="5. Workflow Executor" FOLDED="true" POSITION="bottom_or_right" ID="ID_487077573" CREATED="1760554285797" MODIFIED="1760554285797" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
+<node TEXT="6. Workflow Executor" FOLDED="true" POSITION="bottom_or_right" ID="ID_487077573" CREATED="1760554285797" MODIFIED="1760554285797" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
 <icon BUILTIN="emoji-1F427"/>
 <font NAME="SansSerif" SIZE="11"/>
 <node TEXT="Interactive (slash command)" ID="ID_1578949494" CREATED="1760554285797" MODIFIED="1760554285797" STYLE="bubble"/>
 <node TEXT="Orchestrates autonomous agents" ID="ID_1724125734" CREATED="1760554285797" MODIFIED="1760554285797" STYLE="bubble"/>
-<node TEXT="Follows workflow_coordination_plan.md" ID="ID_69486993" CREATED="1760554285797" MODIFIED="1760554285797" STYLE="bubble"/>
-<node TEXT="5a. PoC Tasks (Early Validation)" FOLDED="true" POSITION="bottom_or_right" ID="ID_1875383043" CREATED="1760554285798" MODIFIED="1760554285798" BACKGROUND_COLOR="#e6f3ff" STYLE="bubble">
+<node TEXT="Reads workflow_sequence.json (execution phases)" ID="ID_69486993" CREATED="1760554285797" MODIFIED="1760554285797" STYLE="bubble"/>
+<node TEXT="Executes plan from Workflow Architecture Group" ID="ID_69486994" CREATED="1760554285797" MODIFIED="1760554285797" STYLE="bubble"/>
+<node TEXT="Does not make scheduling decisions" ID="ID_69486995" CREATED="1760554285797" MODIFIED="1760554285797" STYLE="bubble"/>
+<node TEXT="6a. PoC Tasks (Early Validation)" FOLDED="true" POSITION="bottom_or_right" ID="ID_1875383043" CREATED="1760554285798" MODIFIED="1760554285798" BACKGROUND_COLOR="#e6f3ff" STYLE="bubble">
 <node TEXT="PoC Doer Agents" FOLDED="true" ID="ID_411244063" CREATED="1760554285798" MODIFIED="1760554285798" BACKGROUND_COLOR="#ccffcc" STYLE="bubble">
 <icon BUILTIN="emoji-1F989"/>
 <node TEXT="Autonomous (Task tool)" ID="ID_1540791015" CREATED="1760554285798" MODIFIED="1760554285798" STYLE="bubble"/>
@@ -269,7 +294,8 @@
 </node>
 <node TEXT="Risk Assessment validates PoC" FOLDED="true" ID="ID_1126095420" CREATED="1760554285798" MODIFIED="1760554285798" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
 <icon BUILTIN="emoji-1F427"/>
-<node TEXT="Interactive (invoked by Executor)" ID="ID_1701291263" CREATED="1760554285798" MODIFIED="1760554285798" STYLE="bubble"/>
+<node TEXT="Interactive (user re-activates after PoC)" ID="ID_1701291263" CREATED="1760554285798" MODIFIED="1760554285798" STYLE="bubble"/>
+<node TEXT="Executor prompts user to activate" ID="ID_1701291264" CREATED="1760554285798" MODIFIED="1760554285798" STYLE="bubble"/>
 <node TEXT="Launches validation sub-agents:" FOLDED="true" ID="ID_1189722050" CREATED="1760554285798" MODIFIED="1760554285798" BACKGROUND_COLOR="#e6f3ff" STYLE="bubble">
 <node TEXT="PoC Evidence Reviewer Agent" FOLDED="true" ID="ID_1493189198" CREATED="1760554285798" MODIFIED="1760554285798" BACKGROUND_COLOR="#ccffcc" STYLE="bubble">
 <icon BUILTIN="emoji-1F989"/>
@@ -289,14 +315,19 @@
 </node>
 <node TEXT="Workflow Adaptation (if needed)" FOLDED="true" ID="ID_65486083" CREATED="1760554285798" MODIFIED="1760554285798" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
 <icon BUILTIN="emoji-1F427"/>
-<node TEXT="Interactive (if PoC requires changes)" ID="ID_1421318152" CREATED="1760554285798" MODIFIED="1760554285798" STYLE="bubble"/>
-<node TEXT="Updates workflow plan surgically" ID="ID_1227643741" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
-<node TEXT="Updated workflow_coordination_plan.md" ID="ID_1948154323" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#ffffcc" STYLE="bubble">
+<node TEXT="Interactive (user-activated if PoC requires changes)" ID="ID_1421318152" CREATED="1760554285798" MODIFIED="1760554285798" STYLE="bubble"/>
+<node TEXT="Risk Assessment prompts user to activate" ID="ID_1421318153" CREATED="1760554285798" MODIFIED="1760554285798" STYLE="bubble"/>
+<node TEXT="Makes surgical runtime updates to workflow" ID="ID_1227643741" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Laser-focused on workflow modifications only" ID="ID_1227643742" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Updated workflow_sequence.json" ID="ID_1948154323" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#ffffcc" STYLE="bubble">
+<icon BUILTIN="list"/>
+</node>
+<node TEXT="Updated workflow_coordination_plan.md" ID="ID_1948154324" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#ffffcc" STYLE="bubble">
 <icon BUILTIN="list"/>
 </node>
 </node>
 </node>
-<node TEXT="5b. Main Workflow Execution" FOLDED="true" POSITION="bottom_or_right" ID="ID_678594146" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#e6f3ff" STYLE="bubble">
+<node TEXT="6b. Main Workflow Execution" FOLDED="true" POSITION="bottom_or_right" ID="ID_678594146" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#e6f3ff" STYLE="bubble">
 <node TEXT="Main Doer Agents" FOLDED="true" ID="ID_765080638" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#ccffcc" STYLE="bubble">
 <icon BUILTIN="emoji-1F989"/>
 <node TEXT="Autonomous (Task tool)" ID="ID_1906194963" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
@@ -328,19 +359,30 @@
 </node>
 <node TEXT="Escalation Resolution (if needed)" FOLDED="true" ID="ID_832456983" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#cce5ff" STYLE="bubble">
 <icon BUILTIN="emoji-1F427"/>
-<node TEXT="Interactive (if agents blocked)" ID="ID_204208218" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
-<node TEXT="Routes user questions" ID="ID_1128623188" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
-<node TEXT="Invokes Solution Architect if needed" ID="ID_1375111484" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Interactive (user-activated when agents blocked)" ID="ID_204208218" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Executor detects blockage and prompts user" ID="ID_204208219" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Routes questions appropriately:" ID="ID_1128623188" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble">
+<node TEXT="User requirements → interacts with user" ID="ID_1128623189" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Technical/architecture → Tactical Solution Architect" ID="ID_1128623190" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Workflow/planning → handles internally" ID="ID_1128623191" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+</node>
 <node TEXT="Validates answers don&apos;t break workflow" ID="ID_892562828" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Tactical Solution Architect Agent" FOLDED="true" ID="ID_1375111485" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#ccffcc" STYLE="bubble">
+<icon BUILTIN="emoji-1F989"/>
+<node TEXT="Autonomous (Task tool)" ID="ID_1375111486" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Makes tactical architecture decisions" ID="ID_1375111487" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Reviews architecture escalations from doers" ID="ID_1375111488" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Works like doer agent (completion drive, verification)" ID="ID_1375111489" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
+<node TEXT="Architecture decisions in task_output/" ID="ID_1375111490" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#ffffcc" STYLE="bubble">
+<icon BUILTIN="list"/>
+</node>
+</node>
 <node TEXT="Updated session_current.json (resolutions)" ID="ID_787663821" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#ffffcc" STYLE="bubble">
 <icon BUILTIN="list"/>
 </node>
-<node TEXT="Solution Architect outputs (if invoked)" ID="ID_381740808" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#ffffcc" STYLE="bubble">
-<icon BUILTIN="list"/>
 </node>
 </node>
-</node>
-<node TEXT="5c. Workflow Completion" FOLDED="true" POSITION="bottom_or_right" ID="ID_1365640737" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#e6f3ff" STYLE="bubble">
+<node TEXT="6c. Workflow Completion" FOLDED="true" POSITION="bottom_or_right" ID="ID_1365640737" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#e6f3ff" STYLE="bubble">
 <node TEXT="Archival Agent" FOLDED="true" ID="ID_1195330015" CREATED="1760554285799" MODIFIED="1760554285799" BACKGROUND_COLOR="#ccffcc" STYLE="bubble">
 <icon BUILTIN="emoji-1F989"/>
 <node TEXT="Autonomous (Task tool)" ID="ID_1780697349" CREATED="1760554285799" MODIFIED="1760554285799" STYLE="bubble"/>
